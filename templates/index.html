@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Band Ranker: Step 1</title>
+    <style>
+        /* CSS stays in the <head> */
+        body { font-family: sans-serif; padding: 50px; background: #121212; color: white; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 500px; }
+        .genre-card { border: 1px solid #333; padding: 20px; text-align: center; cursor: pointer; border-radius: 8px; }
+        .genre-card.selected { background: #1DB954; color: black; border-color: white; }
+        button { margin-top: 20px; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <h1>Pick your Vibes</h1>
+    <h2>This will help you build your personalized band tier list</h2>
+    <p id="status-text">Select a genre to continue.</p>
+    
+    <div class="grid">
+        <div class="genre-card" onclick="toggleGenre(this, 'Rock')">Rock</div>
+        <div class="genre-card" onclick="toggleGenre(this, 'Blues')">Blues</div>
+        <div class="genre-card" onclick="toggleGenre(this, 'Jazz')">Jazz</div>
+        <div class="genre-card" onclick="toggleGenre(this, 'Electronic')">Electronic</div>
+        <div class="genre-card" onclick="toggleGenre(this, 'Metal')">Metal</div>
+        <div class="genre-card" onclick="toggleGenre(this, 'Pop')">Pop</div>
+    </div>
+
+    <button id="nextBtn" disabled>Generate My 50 Bands</button>
+
+    <script>
+        let selected = [];
+        const nextBtn = document.getElementById('nextBtn');
+        const statusText = document.getElementById('status-text');
+
+        // This function handles the clicking of genre boxes
+        function toggleGenre(element, name) {
+            if (selected.includes(name)) {
+                selected = selected.filter(g => g !== name);
+                element.classList.remove('selected');
+            } else if (selected.length < 3) {
+                selected.push(name);
+                element.classList.add('selected');
+            }
+            
+            // Logic check: Enable button only if 2 or 3 are picked
+            nextBtn.disabled = (selected.length < 1);
+            //statusText.innerText = `Selected: ${selected.length} / 3`;
+        }
+
+        // This function sends the data to your Python Flask server
+        nextBtn.onclick = () => {
+            nextBtn.innerHTML = "Gathering 50 Bands..."; // Feedback for the user
+            nextBtn.disabled = true;
+
+            fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ genres: selected })
+            })
+            .then(response => response.json())
+            .then(bands => {
+                // Save the 50 bands to the browser's temporary memory 
+                sessionStorage.setItem('poolOf50', JSON.stringify(bands));
+                // Go to the selection page 
+                window.location.href = '/select-twenty';
+                //console.log("Success! Received bands:", bands);
+                //alert(`Found ${bands.length} bands! Open the VS Code Terminal or Press F12 in the browser to see the list.`);
+                
+                // Eventually, we will redirect to a new page here:
+                // window.location.href = '/select-twenty';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong. Check your Python terminal.");
+            });
+        };
+    </script>
+
+</body>
+</html>

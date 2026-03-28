@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Band Ranker: Pick Your 20</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .band-card { background: #1e1e1e; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
+        .band-card img { width: 100%; border-radius: 50%; aspect-ratio: 1/1; object-fit: cover; }
+        .band-card.selected { border-color: #1DB954; background: #282828; }
+        .counter-bar { position: sticky; top: 0; background: #121212; padding: 20px; z-index: 100; border-bottom: 1px solid #333; }
+        #nextBtn:disabled { opacity: 0.3; }
+    </style>
+</head>
+<body>
+
+<div class="counter-bar">
+    <h1>Select your Top 20</h1>
+    <p id="count-text">Picked: 0 / 20</p>
+    <button id="nextBtn" disabled>Move to Ranking</button>
+</div>
+
+<div class="grid" id="band-grid">
+    </div>
+
+<script>
+    let myTop20 = [];
+    // Retrieve the 50 bands we saved in the browser's memory
+    const bands = JSON.parse(sessionStorage.getItem('poolOf50'));
+    const grid = document.getElementById('band-grid');
+    const countText = document.getElementById('count-text');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // --- THIS IS STEP A ---
+    nextBtn.onclick = () => {
+        // 1. Filter the full pool of 50 to get the 20 objects the user clicked
+        // 'bands' is the variable holding the 50 results from the previous page
+        const selectedBandData = bands.filter(b => myTop20.includes(b.id));
+        
+        // 2. Save the full data (names/images) to the browser's session memory
+        sessionStorage.setItem('myFinal20', JSON.stringify(selectedBandData));
+        
+        // 3. Move the user to the Tier List page
+        window.location.href = '/tier-list';
+    };
+    // -----------------------
+
+    bands.forEach(band => {
+        const card = document.createElement('div');
+        card.className = 'band-card';
+        card.innerHTML = `
+            <img src="${band.thumbnail}" alt="${band.name}">
+            <p>${band.name}</p>
+        `;
+        
+        card.onclick = () => {
+            if (myTop20.includes(band.id)) {
+                myTop20 = myTop20.filter(id => id !== band.id);
+                card.classList.remove('selected');
+            } else if (myTop20.length < 20) {
+                myTop20.push(band.id);
+                card.classList.add('selected');
+            }
+            countText.innerText = `Picked: ${myTop20.length} / 20`;
+            nextBtn.disabled = myTop20.length === 0;
+        };
+        grid.appendChild(card);
+
+
+    });
+</script>
+</body>
+</html>

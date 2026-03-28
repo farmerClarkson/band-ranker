@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Band Ranker: Tier List</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
+        .tier-row { display: flex; min-height: 90px; border-bottom: 2px solid #121212; }
+        .tier-label { width: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; color: #000; }
+        .tier-bucket { flex-grow: 1; display: flex; flex-wrap: wrap; padding: 10px; background: #1a1a1a; gap: 8px; min-height: 90px; }
+        
+        /* Tier Colors */
+        .s { background: #ff7f7f; } .a { background: #ffbf7f; } .b { background: #ffff7f; }
+        .c { background: #7fff7f; } .d { background: #7fbfff; } .junk { background: #7f7fff; }
+
+        .band-thumb { width: 70px; height: 70px; border-radius: 50%; cursor: grab; border: 2px solid #333; }
+        .band-thumb:active { cursor: grabbing; border-color: #1DB954; }
+        .band-item { 
+        width: 80px; 
+        text-align: center; 
+        cursor: grab; 
+        background: transparent;
+        transition: transform 0.2s;
+    }
+    .band-item img { 
+        width: 70px; 
+        height: 70px; 
+        border-radius: 50%; 
+        border: 2px solid #333;
+        object-fit: cover;
+    }
+    .band-item p { 
+        margin: 5px 0 0 0; 
+        font-size: 0.7rem; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+    }
+    .tier-bucket, .unranked-pool { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 15px; 
+        padding: 15px; 
+    }
+        .unranked-pool { margin-top: 40px; padding: 20px; background: #1e1e1e; border-radius: 10px; min-height: 120px; display: flex; flex-wrap: wrap; gap: 10px; border: 2px dashed #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Rank Your Top 20</h1>
+    <p>Drag the bands from the pool into their tiers.</p>
+
+    <div id="tier-container">
+        <div class="tier-row"><div class="tier-label s">S</div><div class="tier-bucket" id="S"></div></div>
+        <div class="tier-row"><div class="tier-label a">A</div><div class="tier-bucket" id="A"></div></div>
+        <div class="tier-row"><div class="tier-label b">B</div><div class="tier-bucket" id="B"></div></div>
+        <div class="tier-row"><div class="tier-label c">C</div><div class="tier-bucket" id="C"></div></div>
+        <div class="tier-row"><div class="tier-label d">D</div><div class="tier-bucket" id="D"></div></div>
+        <div class="tier-row"><div class="tier-label junk">JUNK</div><div class="tier-bucket" id="Junk"></div></div>
+    </div>
+
+    <h3>Your Selected Bands</h3>
+    <div class="unranked-pool" id="pool">
+        </div>
+    <button onclick="shareRanking()" id="shareBtn" style="background:#1DB954; color:white; padding:15px; border:none; border-radius:30px; cursor:pointer; font-weight:bold;">
+    Get Shareable Link
+    </button>
+    <script>
+        const final20 = JSON.parse(sessionStorage.getItem('myFinal20') || '[]');
+        const poolEl = document.getElementById('pool');
+
+        // Populate the pool
+        final20.forEach(band => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'band-item';
+            wrapper.dataset.id = band.id; // Keep ID here for saving later
+
+            wrapper.innerHTML = `
+            <img src="${band.thumbnail}" title="${band.name}">
+            <p>${band.name}</p>
+            `;
+        
+        poolEl.appendChild(wrapper);
+        });
+
+        // Initialize Sortable on ALL buckets and the pool
+        const containers = ['pool', 'S', 'A', 'B', 'C', 'D', 'Junk'];
+        containers.forEach(id => {
+            new Sortable(document.getElementById(id), {
+                group: 'shared-tiers', // Allows dragging between lists
+                animation: 150,
+                ghostClass: 'sortable-ghost'
+            });
+        });
+    
+    function shareRanking() {
+        const tiers = ['S', 'A', 'B', 'C', 'D', 'Junk'];
+        const results = {};
+
+        tiers.forEach(t => {
+            const bucket = document.getElementById(t);
+            results[t] = Array.from(bucket.children).map(item => ({
+                id: item.dataset.id,
+                name: item.querySelector('p').innerText,
+                thumb: item.querySelector('img').src
+            }));
+        });
+
+        fetch('/save-tier', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(results)
+        })
+        .then(res => res.json())
+        .then(data => {
+            const fullUrl = window.location.origin + data.share_url;
+            
+            // Option A: WhatsApp Link
+            const waLink = `https://wa.me/?text=Check out my Band Tier List: ${fullUrl}`;
+            
+            // Option B: Email Link
+            const mailLink = `mailto:?subject=My Band Rankings&body=Check it out here: ${fullUrl}`;
+
+            alert("Link Created! You can now share via WhatsApp or Email.");
+            console.log("WhatsApp:", waLink);
+            window.open(waLink, '_blank'); // Opens WhatsApp automatically
+        });
+    }
+    </script>
+</body>
+</html>
