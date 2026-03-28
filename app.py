@@ -10,86 +10,6 @@ app = Flask(__name__, template_folder=template_dir)
 
 yt = YTMusic() # No auth needed for public search
 
-# def get_50_top_bands(selected_genres):
-#     unique_bands = {}
-    
-#     for genre in selected_genres:
-#         # 1. Search for the genre directly
-#         # We increase the limit to 100 to force the API to give us more up front
-#         results = yt.search(f"{genre} music", filter="artists", limit=100)
-        
-#         for item in results:
-#             band_id = item.get('browseId')
-#             # Only add if it's a unique ID
-#             if band_id and band_id not in unique_bands:
-#                 # ytmusicapi sometimes returns 'artist' or 'title' depending on the result type
-#                 name = item.get('artist') or item.get('title')
-                
-#                 # Get the highest resolution thumbnail
-#                 thumb = item['thumbnails'][-1]['url'] if 'thumbnails' in item else ""
-                
-#                 unique_bands[band_id] = {
-#                     "name": name,
-#                     "id": band_id,
-#                     "thumbnail": thumb
-#                 }
-            
-#             # If we hit 50, we can stop early
-#             if len(unique_bands) >= 50:
-#                 break
-                
-#         if len(unique_bands) >= 50:
-#             break
-
-#     # Convert dictionary back to a list
-#     final_list = list(unique_bands.values())
-    
-#     # If we still have fewer than 50 (e.g., for a very niche genre), 
-#     # we can run one last 'catch-all' search
-#     if len(unique_bands) < 50:
-#         extra_results = yt.search("popular bands", filter="artists", limit=50 - len(unique_bands))
-#         for item in extra_results:
-#             # ... repeat the unique check/add logic ...
-#             pass
-
-#     return final_list[:50]
-
-# def get_50_top_bands(selected_genres):
-#     unique_bands = {}
-    
-#     # We will try multiple search "angles" to ensure we hit 50
-#     # search_angles = ["", "best", "top", "classic", "popular", "famous"]
-    
-#     # for angle in search_angles:
-#     for genre in selected_genres:
-#         # Construct a query like "best Rock" or "classic Rock"
-                    
-#         # We search for artists specifically
-#         results = yt.search(f"Top{genre} Artists", filter="artists", limit=50)
-        
-#         for item in results:
-#             band_id = item.get('browseId')
-#             if band_id and band_id not in unique_bands:
-#                 unique_bands[band_id] = {
-#                     "name": item.get('artist') or item.get('title'),
-#                     "id": band_id,
-#                     "thumbnail": item['thumbnails'][-1]['url']
-#                 }
-                    
-              
-            
-#             # Check if we finally have 50
-#             if len(unique_bands) >= 50:
-#                 break
-#         if len(unique_bands) >= 50: break
-    
-
-#     # Convert to list and shuffle so it's not grouped by 'angle'
-#     final_list = list(unique_bands.values())
-#     random.shuffle(final_list)
-    
-#     return final_list[:50]
-
 
 GENRE_SEEDS = {
     "Rock": [
@@ -248,47 +168,10 @@ def save_tier():
     
     return jsonify({"share_url": f"/view/{unique_id}"})
 
-@app.route('/view/<tier_id>')
-def view_tier(tier_id):
-    # This is what your friends will see
-    conn = sqlite3.connect('rankings.db')
-    c = conn.cursor()
-    c.execute("SELECT data FROM tiers WHERE id=?", (tier_id,))
-    result = c.fetchone()
-    conn.close()
-    
-    if result:
-        # DEBUG: Print all files found in the template directory
-        print(f"DEBUG: Templates available: {os.listdir(app.template_folder)}")
-        print(f"Checking for templates in: {app.template_folder}")
-        print(f"Files found: {os.listdir(app.template_folder)}")
-
-        conn = sqlite3.connect('rankings.db')
-        # ... rest of your existing code ...
-        # We can use a 'view-only' version of your tierlist.html
-        return render_template('view_ranking.html', data=result[0])
-    return "Ranking not found!", 404
 
 @app.route('/tier-list')
 def tier_list():
     return render_template('tierlist.html')
-# @app.route('/generate', methods=['POST'])
-# def generate():
-#     data = request.json
-#     selected_genres = data.get('genres', [])
-    
-#     pool_of_50 = []
-#     # Divide 50 by number of genres (e.g., if 2 genres, get 25 from each)
-#     per_genre = 50 // len(selected_genres)
-    
-#     for genre in selected_genres:
-#         pool_of_50.extend(get_bands_for_genre(genre, per_genre))
-    
-#     # Shuffle so the legends and trending are mixed up for the user
-#     random.shuffle(pool_of_50)
-    
-#     # Return as JSON to the frontend
-#     return jsonify(pool_of_50[:50])
 
 @app.route('/view/<tier_id>')
 def view_tier(tier_id):
