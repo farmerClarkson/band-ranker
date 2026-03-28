@@ -13,6 +13,8 @@
         .s { background: #ff7f7f; } .a { background: #ffbf7f; } .b { background: #ffff7f; }
         .c { background: #7fff7f; } .d { background: #7fbfff; } .junk { background: #7f7fff; }
 
+        .tier-bucket img {  width: 60px;    height: 60px;    border-radius: 4px;    margin: 5px;    display: inline-block;}
+
         .band-item { width: 80px; text-align: center; }
         .band-item img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #333; object-fit: cover; }
         .band-item p { margin: 5px 0 0 0; font-size: 0.7rem; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -54,18 +56,34 @@
     </div>
 
     <div id="tier-container">
-        <div class="tier-row"><div class="tier-label s">S</div><div class="tier-bucket" id="S"></div></div>
-        <div class="tier-row"><div class="tier-label a">A</div><div class="tier-bucket" id="A"></div></div>
-        <div class="tier-row"><div class="tier-label b">B</div><div class="tier-bucket" id="B"></div></div>
-        <div class="tier-row"><div class="tier-label c">C</div><div class="tier-bucket" id="C"></div></div>
-        <div class="tier-row"><div class="tier-label d">D</div><div class="tier-bucket" id="D"></div></div>
-        <div class="tier-row"><div class="tier-label junk">JUNK</div><div class="tier-bucket" id="Junk"></div></div>
+        <div class="tier-row">
+            <div class="tier-label" style="background-color: #ff7f7f;">S</div>
+            <div class="tier-bucket" id="S"></div></div>
+        <div class="tier-row"><div class="tier-label" style="background-color: #ffbf7f;">A</div><div class="tier-bucket" id="A"></div></div>
+        <div class="tier-row"><div class="tier-label" style="background-color: #ffff7f;">B</div><div class="tier-bucket" id="B"></div></div>
+        <div class="tier-row"><div class="tier-label" style="background-color: #7fff7f;">C</div><div class="tier-bucket" id="C"></div></div>
+        <div class="tier-row"><div class="tier-label" style="background-color: #7fbfff;">D</div><div class="tier-bucket" id="D"></div></div>
+        <div class="tier-row"><div class="tier-label" style="background-color: #7f7fff;">JUNK</div><div class="tier-bucket" id="Junk"></div></div>
     </div>
 
     <script>
         // Flask passes the data as a JSON string into this template
         const rawData = {{ data | safe }};
         const ranking = JSON.parse(rawData);
+        const tierData = JSON.parse(rawData);
+
+        Object.keys(tierData).forEach(tier => {
+            const bucket = document.getElementById(`${tier}-bucket`);
+            if (bucket) {
+                tierData[tier].forEach(band => {
+                    const img = document.createElement('img');
+                    img.src = band.image;
+                    img.title = band.name;
+                    img.classList.add('band-photo'); // Make sure this matches your CSS
+                    bucket.appendChild(img);
+                });
+            }
+        });
 
         // Loop through S, A, B, C, D, Junk
         Object.keys(ranking).forEach(tier => {
