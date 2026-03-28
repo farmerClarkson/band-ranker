@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Band Ranker: Shared List</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
+        .tier-row { display: flex; min-height: 90px; border-bottom: 2px solid #111; }
+        .tier-label { width: 100px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; color: #000; }
+        .tier-bucket { flex-grow: 1; display: flex; flex-wrap: wrap; padding: 10px; background: #1a1a1a; gap: 15px; }
+        
+        /* Tier Colors */
+        .s { background: #ff7f7f; } .a { background: #ffbf7f; } .b { background: #ffff7f; }
+        .c { background: #7fff7f; } .d { background: #7fbfff; } .junk { background: #7f7fff; }
+
+        .band-item { width: 80px; text-align: center; }
+        .band-item img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #333; object-fit: cover; }
+        .band-item p { margin: 5px 0 0 0; font-size: 0.7rem; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .btn-create { background: #1DB954; color: white; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Music Tier List</h1>
+        <p>A friend shared their rankings with you!</p>
+        <a href="/" class="btn-create">Create Your Own List</a>
+    </div>
+
+    <div id="tier-container">
+        <div class="tier-row"><div class="tier-label s">S</div><div class="tier-bucket" id="S"></div></div>
+        <div class="tier-row"><div class="tier-label a">A</div><div class="tier-bucket" id="A"></div></div>
+        <div class="tier-row"><div class="tier-label b">B</div><div class="tier-bucket" id="B"></div></div>
+        <div class="tier-row"><div class="tier-label c">C</div><div class="tier-bucket" id="C"></div></div>
+        <div class="tier-row"><div class="tier-label d">D</div><div class="tier-bucket" id="D"></div></div>
+        <div class="tier-row"><div class="tier-label junk">JUNK</div><div class="tier-bucket" id="Junk"></div></div>
+    </div>
+
+    <script>
+        // Flask passes the data as a JSON string into this template
+        const rawData = {{ data | safe }};
+        const ranking = JSON.parse(rawData);
+
+        // Loop through S, A, B, C, D, Junk
+        Object.keys(ranking).forEach(tier => {
+            const bucket = document.getElementById(tier);
+            const bandsInTier = ranking[tier]; // This is the array of band objects
+
+            bandsInTier.forEach(band => {
+                const div = document.createElement('div');
+                div.className = 'band-item';
+                div.innerHTML = `
+                    <img src="${band.thumb}">
+                    <p>${band.name}</p>
+                `;
+                bucket.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>

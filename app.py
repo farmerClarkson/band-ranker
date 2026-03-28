@@ -274,5 +274,26 @@ def tier_list():
 #     # Return as JSON to the frontend
 #     return jsonify(pool_of_50[:50])
 
+@app.route('/view/<tier_id>')
+def view_tier(tier_id):
+    conn = sqlite3.connect('rankings.db')
+    c = conn.cursor()
+    c.execute("SELECT data FROM tiers WHERE id=?", (tier_id,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result:
+        # Pass the database string directly to the template
+        return render_template('view_ranking.html', data=result[0])
+    return "Ranking not found!", 404
+
+
+import os
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use the port assigned by the cloud, or default to 5000 for local dev
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
