@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 from ytmusicapi import YTMusic
 import random
+import os
+# This finds the exact folder where app.py is located
+base_dir = os.path.abspath(os.path.dirname(__file__))
+template_dir = os.path.join(base_dir, 'templates')
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=template_dir)
+
 yt = YTMusic() # No auth needed for public search
 
 # def get_50_top_bands(selected_genres):
@@ -214,12 +219,16 @@ import uuid # For generating unique share links
 
 # Initialize Database
 def init_db():
-    conn = sqlite3.connect('rankings.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS tiers 
+    try:
+        conn = sqlite3.connect('rankings.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS tiers 
                  (id TEXT PRIMARY KEY, data TEXT)''')
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        print("Database initialized successfully.")
+    except Exception as e:
+        print(f"Database error: {e}")
 
 init_db()
 
@@ -249,6 +258,13 @@ def view_tier(tier_id):
     conn.close()
     
     if result:
+        # DEBUG: Print all files found in the template directory
+        print(f"DEBUG: Templates available: {os.listdir(app.template_folder)}")
+        print(f"Checking for templates in: {app.template_folder}")
+        print(f"Files found: {os.listdir(app.template_folder)}")
+
+        conn = sqlite3.connect('rankings.db')
+        # ... rest of your existing code ...
         # We can use a 'view-only' version of your tierlist.html
         return render_template('view_ranking.html', data=result[0])
     return "Ranking not found!", 404
