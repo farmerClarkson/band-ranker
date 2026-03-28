@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Band Ranker: Tier List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
@@ -43,6 +44,31 @@
         padding: 15px; 
     }
         .unranked-pool { margin-top: 40px; padding: 20px; background: #1e1e1e; border-radius: 10px; min-height: 120px; display: flex; flex-wrap: wrap; gap: 10px; border: 2px dashed #333; }
+    
+    @media (max-width: 600px) {
+        .tier-row {
+            min-height: 70px;
+        }
+        .tier-label { 
+            width: 50px; 
+            font-size: 1rem; 
+        }
+        .tier-bucket { 
+            gap: 5px; 
+            padding: 5px; 
+        }
+        .band-item { 
+            width: 60px; 
+        }
+        .band-item img { 
+            width: 45px; 
+            height: 45px; 
+        }
+        .band-item p { 
+            font-size: 0.5rem; 
+        }
+    }
+    
     </style>
 </head>
 <body>
